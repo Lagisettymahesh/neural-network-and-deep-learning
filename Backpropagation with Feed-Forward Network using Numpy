@@ -1,0 +1,82 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Data
+X = np.array([[0,0],
+              [0,1],
+              [1,0],
+              [1,1]])
+y = np.array([[0],
+              [1],
+              [1],
+              [0]])
+
+np.random.seed(42)
+
+# Initialize weights
+W1 = np.random.randn(2, 3)
+b1 = np.zeros((1, 3))
+W2 = np.random.randn(3, 1)
+b2 = np.zeros((1, 1))
+
+lr = 0.1
+epochs = 3000
+loss_history = []
+
+# Activation
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+def sigmoid_deriv(a):
+    return a * (1 - a)
+
+# BEFORE BACKPROP (Only forward pass)
+z1 = X @ W1 + b1
+a1 = sigmoid(z1)
+z2 = a1 @ W2 + b2
+y_pred_before = sigmoid(z2)
+loss_before = np.mean((y - y_pred_before) ** 2)
+# TRAINING (Backprop)
+for _ in range(epochs):
+
+    # Forward
+    z1 = X @ W1 + b1
+    a1 = sigmoid(z1)
+    z2 = a1 @ W2 + b2
+    y_hat = sigmoid(z2)
+
+    loss = np.mean((y - y_hat) ** 2)
+    loss_history.append(loss)
+
+    # Backpropagation
+    dZ2 = (y_hat - y) * sigmoid_deriv(y_hat)
+    dW2 = a1.T @ dZ2
+    db2 = np.sum(dZ2, axis=0, keepdims=True)
+
+    dZ1 = (dZ2 @ W2.T) * sigmoid_deriv(a1)
+    dW1 = X.T @ dZ1
+    db1 = np.sum(dZ1, axis=0, keepdims=True)
+
+    # Update
+    W2 -= lr * dW2
+    b2 -= lr * db2
+    W1 -= lr * dW1
+    b1 -= lr * db1
+# AFTER BACKPROP
+z1 = X @ W1 + b1
+a1 = sigmoid(z1)
+z2 = a1 @ W2 + b2
+
+y_pred_after = sigmoid(z2)
+loss_after = np.mean((y - y_pred_after) ** 2)
+print("Loss BEFORE backprop:", loss_before)
+print("Loss AFTER backprop :", loss_after)
+print("\nPredictions before training:")
+print(np.round(y_pred_before, 3))
+print("\nPredictions after training:")
+print(np.round(y_pred_after, 3))
+plt.plot(loss_history)
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.title("Loss Reduction Using Backpropagation")
+plt.show()
